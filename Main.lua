@@ -1,8 +1,10 @@
--- OPWash Hub (executor compatible)
+-- OPWash Hub (FINAL FIX)
 
+-- Servicios
 local CoreGui = game:GetService("CoreGui")
 local StarterGui = game:GetService("StarterGui")
 local UIS = game:GetService("UserInputService")
+local CAS = game:GetService("ContextActionService")
 
 -- Notificación de carga
 pcall(function()
@@ -23,7 +25,9 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "OPWashHub"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = CoreGui
+screenGui.Enabled = true
 
+-- Frame principal
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 300, 0, 200)
 mainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
@@ -35,7 +39,7 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 12)
 corner.Parent = mainFrame
 
--- ===== BOTÓN =====
+-- Botón de prueba
 local btnTest = Instance.new("TextButton")
 btnTest.Size = UDim2.new(1, -40, 0, 50)
 btnTest.Position = UDim2.new(0, 20, 0, 20)
@@ -60,20 +64,10 @@ btnTest.MouseButton1Click:Connect(function()
     end)
 end)
 
--- ===== HACER EL MENÚ MOVIBLE =====
+-- ===== MENÚ ARRASTRABLE =====
 local dragging = false
 local dragStart
 local startPos
-
-local function updateDrag(input)
-    local delta = input.Position - dragStart
-    mainFrame.Position = UDim2.new(
-        startPos.X.Scale,
-        startPos.X.Offset + delta.X,
-        startPos.Y.Scale,
-        startPos.Y.Offset + delta.Y
-    )
-end
 
 mainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -91,17 +85,29 @@ end)
 
 UIS.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        updateDrag(input)
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
     end
 end)
 
--- ===== OCULTAR / MOSTRAR CON G =====
+-- ===== OCULTAR / MOSTRAR CON G (FIX DEFINITIVO) =====
 local visible = true
 
-UIS.InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode == Enum.KeyCode.G then
+local function toggleMenu(actionName, inputState)
+    if inputState == Enum.UserInputState.Begin then
         visible = not visible
-        mainFrame.Visible = visible
+        screenGui.Enabled = visible
     end
-end)
+end
+
+CAS:BindAction(
+    "OPWashToggle",
+    toggleMenu,
+    false,
+    Enum.KeyCode.G
+)
