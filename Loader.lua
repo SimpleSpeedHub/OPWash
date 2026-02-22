@@ -1,4 +1,4 @@
-local url = "PON_AQUI_LA_URL_DE_MAIN.lua"
+local url = "https://raw.githubusercontent.com/SimpleSpeedHub/OPWash/refs/heads/main/Main.lua"
 
 local ok, err = pcall(function()
 	loadstring(game:HttpGet(url))()
