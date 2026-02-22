@@ -1,1 +1,0 @@
-print("OPWash cargado correctamente")
