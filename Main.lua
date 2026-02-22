@@ -2,6 +2,7 @@
 
 local CoreGui = game:GetService("CoreGui")
 local StarterGui = game:GetService("StarterGui")
+local UIS = game:GetService("UserInputService")
 
 -- Notificación de carga
 pcall(function()
@@ -34,7 +35,7 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 12)
 corner.Parent = mainFrame
 
--- Botón
+-- ===== BOTÓN =====
 local btnTest = Instance.new("TextButton")
 btnTest.Size = UDim2.new(1, -40, 0, 50)
 btnTest.Position = UDim2.new(0, 20, 0, 20)
@@ -57,4 +58,50 @@ btnTest.MouseButton1Click:Connect(function()
             Duration = 3
         })
     end)
+end)
+
+-- ===== HACER EL MENÚ MOVIBLE =====
+local dragging = false
+local dragStart
+local startPos
+
+local function updateDrag(input)
+    local delta = input.Position - dragStart
+    mainFrame.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+end
+
+mainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        updateDrag(input)
+    end
+end)
+
+-- ===== OCULTAR / MOSTRAR CON G =====
+local visible = true
+
+UIS.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.G then
+        visible = not visible
+        mainFrame.Visible = visible
+    end
 end)
