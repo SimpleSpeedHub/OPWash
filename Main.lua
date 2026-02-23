@@ -1,9 +1,8 @@
--- OPWash Hub (FINAL STABLE)
+-- OPWash Hub (FINAL DEFINITIVE VERSION)
 
 -- ===== SERVICIOS =====
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
-local CAS = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 local StarterGui = game:GetService("StarterGui")
@@ -19,7 +18,7 @@ pcall(function()
 	})
 end)
 
--- ===== LIMPIAR GUI =====
+-- ===== LIMPIAR GUI ANTERIOR =====
 if CoreGui:FindFirstChild("OPWashHub") then
 	CoreGui.OPWashHub:Destroy()
 end
@@ -36,10 +35,9 @@ frame.Position = UDim2.new(0.5, -150, 0.5, -130)
 frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.BorderSizePixel = 0
 frame.Parent = gui
-
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
 
--- ===== BOTÓN JUMP =====
+-- ===== BOTÓN JUMP BOOST =====
 local btnJump = Instance.new("TextButton")
 btnJump.Size = UDim2.new(1, -40, 0, 45)
 btnJump.Position = UDim2.new(0, 20, 0, 20)
@@ -67,18 +65,21 @@ Instance.new("UICorner", btnNoclip).CornerRadius = UDim.new(0,8)
 local jumpEnabled = false
 local noclipEnabled = false
 local humanoid, hrp
+
 local JUMP_FORCE = 100
 local NOCLIP_SPEED = 100
 local noclipConn
 
 -- ===== CHARACTER =====
-local function onChar(char)
+local function onCharacter(char)
 	humanoid = char:WaitForChild("Humanoid")
 	hrp = char:WaitForChild("HumanoidRootPart")
 end
 
-if player.Character then onChar(player.Character) end
-player.CharacterAdded:Connect(onChar)
+if player.Character then
+	onCharacter(player.Character)
+end
+player.CharacterAdded:Connect(onCharacter)
 
 -- ===== JUMP BOOST =====
 local function updateJumpUI()
@@ -91,20 +92,23 @@ btnJump.MouseButton1Click:Connect(function()
 	updateJumpUI()
 end)
 
-UIS.InputBegan:Connect(function(i,gp)
+UIS.InputBegan:Connect(function(input, gp)
 	if gp then return end
-	if i.KeyCode == Enum.KeyCode.V then
+	if input.KeyCode == Enum.KeyCode.V then
 		jumpEnabled = not jumpEnabled
 		updateJumpUI()
 	end
 end)
 
-UIS.InputBegan:Connect(function(i,gp)
+UIS.InputBegan:Connect(function(input, gp)
 	if gp then return end
 	if not jumpEnabled then return end
-	if i.KeyCode ~= Enum.KeyCode.Space then return end
-	if hrp then
-		hrp.AssemblyLinearVelocity = Vector3.new(hrp.AssemblyLinearVelocity.X, JUMP_FORCE, hrp.AssemblyLinearVelocity.Z)
+	if input.KeyCode == Enum.KeyCode.Space and hrp then
+		hrp.AssemblyLinearVelocity = Vector3.new(
+			hrp.AssemblyLinearVelocity.X,
+			JUMP_FORCE,
+			hrp.AssemblyLinearVelocity.Z
+		)
 	end
 end)
 
@@ -120,6 +124,7 @@ end
 
 local function noclipStep(dt)
 	if not hrp then return end
+
 	setCollision(false)
 
 	local cam = workspace.CurrentCamera
@@ -130,11 +135,13 @@ local function noclipStep(dt)
 	if UIS:IsKeyDown(Enum.KeyCode.S) then dir -= cam.CFrame.LookVector end
 	if UIS:IsKeyDown(Enum.KeyCode.A) then dir -= cam.CFrame.RightVector end
 	if UIS:IsKeyDown(Enum.KeyCode.D) then dir += cam.CFrame.RightVector end
-	if UIS:IsKeyDown(Enum.KeyCode.Space) then dir += Vector3.yAxis end
-	if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Vector3.yAxis end
+
+	-- ⬆️⬇️ CONTROLES CORREGIDOS
+	if UIS:IsKeyDown(Enum.KeyCode.E) then dir += Vector3.new(0,1,0) end
+	if UIS:IsKeyDown(Enum.KeyCode.Q) then dir -= Vector3.new(0,1,0) end
 
 	if dir.Magnitude > 0 then
-		hrp.CFrame += dir.Unit * NOCLIP_SPEED * dt
+		hrp.CFrame = hrp.CFrame + dir.Unit * NOCLIP_SPEED * dt
 	end
 end
 
@@ -156,38 +163,47 @@ end
 
 btnNoclip.MouseButton1Click:Connect(toggleNoclip)
 
-UIS.InputBegan:Connect(function(i,gp)
+UIS.InputBegan:Connect(function(input, gp)
 	if gp then return end
-	if i.KeyCode == Enum.KeyCode.N then
+	if input.KeyCode == Enum.KeyCode.N then
 		toggleNoclip()
 	end
 end)
 
 -- ===== DRAG =====
-local drag, dragStart, startPos
-frame.InputBegan:Connect(function(i)
-	if i.UserInputType == Enum.UserInputType.MouseButton1 then
-		drag = true
-		dragStart = i.Position
+local dragging, dragStart, startPos
+frame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
 		startPos = frame.Position
-		i.Changed:Connect(function()
-			if i.UserInputState == Enum.UserInputState.End then drag = false end
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
 		end)
 	end
 end)
 
-UIS.InputChanged:Connect(function(i)
-	if drag and i.UserInputType == Enum.UserInputType.MouseMovement then
-		local d = i.Position - dragStart
-		frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+UIS.InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
 	end
 end)
 
--- ===== TOGGLE MENÚ (G) =====
+-- ===== OCULTAR / MOSTRAR (G) =====
 local visible = true
-CAS:BindAction("OPWashToggle", function(_,state)
-	if state == Enum.UserInputState.Begin then
+UIS.InputBegan:Connect(function(input, gp)
+	if gp then return end
+	if input.KeyCode == Enum.KeyCode.G then
 		visible = not visible
 		gui.Enabled = visible
 	end
-end,false,Enum.KeyCode.G)
+end)
