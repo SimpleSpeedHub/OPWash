@@ -1,6 +1,6 @@
--- OPWash Hub (FINAL DEFINITIVE VERSION)
+-- OPWash Hub (FINAL FIXED VERSION)
 
--- ===== SERVICIOS =====
+-- ===== SERVICES =====
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -9,16 +9,16 @@ local StarterGui = game:GetService("StarterGui")
 
 local player = Players.LocalPlayer
 
--- ===== NOTIFICACIÓN =====
+-- ===== NOTIFICATION =====
 pcall(function()
 	StarterGui:SetCore("SendNotification", {
 		Title = "OPWash",
-		Text = "Cargado correctamente",
+		Text = "Loaded successfully",
 		Duration = 4
 	})
 end)
 
--- ===== LIMPIAR GUI ANTERIOR =====
+-- ===== CLEAN OLD GUI =====
 if CoreGui:FindFirstChild("OPWashHub") then
 	CoreGui.OPWashHub:Destroy()
 end
@@ -30,14 +30,14 @@ gui.ResetOnSpawn = false
 gui.Parent = CoreGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 260)
-frame.Position = UDim2.new(0.5, -150, 0.5, -130)
+frame.Size = UDim2.new(0, 320, 0, 330)
+frame.Position = UDim2.new(0.5, -160, 0.5, -165)
 frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.BorderSizePixel = 0
 frame.Parent = gui
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
 
--- ===== BOTÓN JUMP BOOST =====
+-- ===== JUMP BOOST BUTTON =====
 local btnJump = Instance.new("TextButton")
 btnJump.Size = UDim2.new(1, -40, 0, 45)
 btnJump.Position = UDim2.new(0, 20, 0, 20)
@@ -49,10 +49,22 @@ btnJump.BackgroundColor3 = Color3.fromRGB(70,70,70)
 btnJump.Parent = frame
 Instance.new("UICorner", btnJump).CornerRadius = UDim.new(0,8)
 
--- ===== BOTÓN NOCLIP =====
+-- Jump info
+local jumpInfo = Instance.new("TextLabel")
+jumpInfo.Size = UDim2.new(1, -40, 0, 30)
+jumpInfo.Position = UDim2.new(0, 20, 0, 70)
+jumpInfo.BackgroundTransparency = 1
+jumpInfo.Text = "Jump Boost ON / OFF | Key: V"
+jumpInfo.TextColor3 = Color3.fromRGB(180,180,180)
+jumpInfo.Font = Enum.Font.Gotham
+jumpInfo.TextSize = 14
+jumpInfo.TextWrapped = true
+jumpInfo.Parent = frame
+
+-- ===== NOCLIP BUTTON =====
 local btnNoclip = Instance.new("TextButton")
 btnNoclip.Size = UDim2.new(1, -40, 0, 45)
-btnNoclip.Position = UDim2.new(0, 20, 0, 80)
+btnNoclip.Position = UDim2.new(0, 20, 0, 110)
 btnNoclip.Text = "Noclip: OFF"
 btnNoclip.Font = Enum.Font.GothamBold
 btnNoclip.TextSize = 18
@@ -60,6 +72,18 @@ btnNoclip.TextColor3 = Color3.new(1,1,1)
 btnNoclip.BackgroundColor3 = Color3.fromRGB(70,70,70)
 btnNoclip.Parent = frame
 Instance.new("UICorner", btnNoclip).CornerRadius = UDim.new(0,8)
+
+-- Noclip info
+local noclipInfo = Instance.new("TextLabel")
+noclipInfo.Size = UDim2.new(1, -40, 0, 50)
+noclipInfo.Position = UDim2.new(0, 20, 0, 160)
+noclipInfo.BackgroundTransparency = 1
+noclipInfo.Text = "Noclip ON / OFF | Key: N\nMove: WASD | Up: E | Down: Q"
+noclipInfo.TextColor3 = Color3.fromRGB(180,180,180)
+noclipInfo.Font = Enum.Font.Gotham
+noclipInfo.TextSize = 14
+noclipInfo.TextWrapped = true
+noclipInfo.Parent = frame
 
 -- ===== VARIABLES =====
 local jumpEnabled = false
@@ -101,9 +125,8 @@ UIS.InputBegan:Connect(function(input, gp)
 end)
 
 UIS.InputBegan:Connect(function(input, gp)
-	if gp then return end
-	if not jumpEnabled then return end
-	if input.KeyCode == Enum.KeyCode.Space and hrp then
+	if gp or not jumpEnabled or not hrp then return end
+	if input.KeyCode == Enum.KeyCode.Space then
 		hrp.AssemblyLinearVelocity = Vector3.new(
 			hrp.AssemblyLinearVelocity.X,
 			JUMP_FORCE,
@@ -124,7 +147,6 @@ end
 
 local function noclipStep(dt)
 	if not hrp then return end
-
 	setCollision(false)
 
 	local cam = workspace.CurrentCamera
@@ -135,8 +157,6 @@ local function noclipStep(dt)
 	if UIS:IsKeyDown(Enum.KeyCode.S) then dir -= cam.CFrame.LookVector end
 	if UIS:IsKeyDown(Enum.KeyCode.A) then dir -= cam.CFrame.RightVector end
 	if UIS:IsKeyDown(Enum.KeyCode.D) then dir += cam.CFrame.RightVector end
-
-	-- ⬆️⬇️ CONTROLES CORREGIDOS
 	if UIS:IsKeyDown(Enum.KeyCode.E) then dir += Vector3.new(0,1,0) end
 	if UIS:IsKeyDown(Enum.KeyCode.Q) then dir -= Vector3.new(0,1,0) end
 
@@ -198,7 +218,7 @@ UIS.InputChanged:Connect(function(input)
 	end
 end)
 
--- ===== OCULTAR / MOSTRAR (G) =====
+-- ===== TOGGLE GUI (G) =====
 local visible = true
 UIS.InputBegan:Connect(function(input, gp)
 	if gp then return end
